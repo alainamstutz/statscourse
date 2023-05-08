@@ -1,0 +1,112 @@
+---
+title: "stats course"
+author: "A.Amstutz"
+date: "2023-05-08"
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    keep_md: yes
+    toc: yes
+    toc_float: yes
+    code_folding: hide
+---
+
+```{r settings and packages, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# wrangling packages
+library(here) # here makes a project transportable
+library(janitor) # clean_names
+library(readxl) # read excel, duh!
+library(data.table) # magical data frames
+library(magrittr) # pipes
+library(stringr) # string functions
+library(forcats) # factor functions
+
+# analysis packages
+library(emmeans) # the workhorse for inference
+library(nlme) # gls and some lmm
+library(lme4) # linear mixed models
+library(lmerTest) # linear mixed model inference
+library(afex) # ANOVA linear models
+library(glmmTMB) # generalized linear models
+library(MASS) # negative binomial and some other functions
+library(car) # model checking and ANOVA
+library(DHARMa) # model checking
+
+# graphing packages
+library(ggsci) # color palettes
+library(ggpubr) # publication quality plots
+library(ggforce) # better jitter
+library(cowplot) # combine plots
+library(knitr) # kable tables
+library(kableExtra) # kable_styling tables
+
+# ggplot_the_model.R packages not loaded above
+library(insight)
+library(lazyWeave)
+
+# use here from the here package
+here <- here::here
+# use clean_names from the janitor package
+clean_names <- janitor::clean_names
+
+# load functions used by this text written by me
+# ggplot_the_model.R needs to be in the folder "R"
+# if you didn't download this and add to your R folder in your
+# project, then this line will cause an error
+source_path <- here("R", "ggplot_the_model.R")
+source(source_path)
+
+data_folder <- "data"
+image_folder <- "images"
+output_folder <- "output"
+```
+
+```{r fake data}
+set.seed(4)
+n <- 10
+fake_data <- data.table(
+    treatment = rep(c("cn", "tr"), each = n),
+    neutrophil_count_exp1 = rnegbin(n*2, 
+                                    mu = rep(c(10, 15), each = n),
+                                    theta = 1),
+    neutrophil_count_exp2 = rnegbin(n*2, 
+                                    mu = rep(c(10, 20), each = n),
+                                    theta = 1)
+)
+View(fake_data)
+```
+
+```{r plot fake data}
+gg_1 <- ggstripchart(data = fake_data,
+                x = "treatment",
+                y = "neutrophil_count_exp1",
+                color = "treatment",
+                palette = "jco",
+                add = "mean_se",
+                legend = "none") +
+    ylab("Neutrophil Count (Exp. 1)") +
+  stat_compare_means(method = "t.test",
+                     label.y = 50,
+                     label = "p.format") +
+    NULL
+
+gg_2<- ggstripchart(data = fake_data,
+                x = "treatment",
+                y = "neutrophil_count_exp2",
+                color = "treatment",
+                palette = "jco",
+                add = "mean_se",
+                legend = "none") +
+  ylab("Neutrophil Count (Exp 2)") +
+  stat_compare_means(method = "t.test",
+                     label.y = 65,
+                     label = "p.format") +
+NULL
+
+plot_grid(gg_1, gg_2, labels = "AUTO")
+```
+
+
